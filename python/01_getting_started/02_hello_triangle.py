@@ -1,0 +1,209 @@
+import sys
+import numpy as np
+import argparse
+
+import glfw
+from OpenGL.GL import *
+
+
+### shaders
+vertex_shader_source = """
+#version 330 core
+
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+}
+"""
+
+fragment_shader_source = """
+#version 330 core
+
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}
+"""
+
+
+### functions
+# whenever the window size changed (by OS or user) this callback function executes
+def framebuffer_size_callback(window, width, height):
+    glViewport(0, 0, width, height)
+
+# process all input
+# : query GLFW whether relevant keys are pressed/released this frame and react accordingly
+def process_input(window):
+    if(glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
+        glfw.set_window_should_close(window, True)
+
+# set shader program
+def set_shader_program():
+    vertex_shader = glCreateShader(GL_VERTEX_SHADER)
+    glShaderSource(vertex_shader, vertex_shader_source)
+    glCompileShader(vertex_shader)
+
+    # check for shader compile errors
+    success = glGetShaderiv(vertex_shader, GL_COMPILE_STATUS)
+    if not success:
+        info_log = glGetShaderInfoLog(vertex_shader)
+        print("ERROR:SHADER::VERTEX::COMPILATION_FAILED ", info_log)
+
+    # fragment shader
+    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
+    glShaderSource(fragment_shader, fragment_shader_source)
+    glCompileShader(fragment_shader)
+
+    # check for shader compile errors
+    success = glGetShaderiv(fragment_shader, GL_COMPILE_STATUS)
+    if not success:
+        info_log = glGetShaderInfoLog(fragment_shader)
+        print("ERROR:SHADER::FRAGMENT::COMPILATION_FAILED ", info_log)
+
+    shader_program = glCreateProgram()
+    glAttachShader(shader_program, vertex_shader)
+    glAttachShader(shader_program, fragment_shader)
+    glLinkProgram(shader_program)
+    
+    success = glGetProgramiv(shader_program, GL_LINK_STATUS)
+    if not success:
+        info_log = glGetProgramInfoLog(shader_program)
+        print("ERROR::SHADER::PROGRAM::LINKING_FAILED ", info_log)
+
+    glDeleteShader(vertex_shader)
+    glDeleteShader(fragment_shader)
+
+    return shader_program
+
+# vertices, indices setting
+def set_triangle():
+    vertices = [ -0.5, -0.5,  0.0,
+                  0.5, -0.5,  0.0,
+                  0.0,  0.5,  0.0 ]
+    vertices = np.array(vertices, dtype=np.float32)
+
+    return vertices, None
+
+def set_rectangle():
+    vertices = [  0.5,  0.5,  0.0,
+                  0.5, -0.5,  0.0,
+                 -0.5, -0.5,  0.0,
+                 -0.5,  0.5,  0.0 ]
+    vertices = np.array(vertices, dtype=np.float32)
+
+    indices = [ 0, 1, 3,
+                1, 2, 3 ]
+    indices = np.array(indices, dtype=np.uint32)
+
+    return vertices, indices
+
+
+### main
+def main(args):
+    # initialize GLFW
+    glfw.init()
+
+    # glfw configuration
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    if (sys.platform == "darwin"):  # for Mac OS. forward compatibility
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
+ 
+    # glfw window creation
+    window = glfw.create_window(800, 600, "LearnOpenGL", None, None)
+    if window is None:
+        print("Failed to create GLFW window")
+        glfw.terminate()
+        return
+    
+    glfw.make_context_current(window)
+    glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
+
+
+    # set shader program
+    shader_program = set_shader_program()
+
+
+    # set up vertex data (and buffer(s)) and configure vertex attributes
+    if args.primitive == "tri":
+        vertices, indices = set_triangle()
+    elif args.primitive == "rect":
+        vertices, indices = set_rectangle()
+    else :
+        print("Please write target primitive ('triangle', 'rect')")
+        exit()
+    
+    VAO = glGenVertexArrays(1)
+    VBO = glGenBuffers(1)
+    EBO = glGenBuffers(1) if indices is not None else None
+
+    # bind the Vertex Array Object first, then bind and set vertex buffer(s),
+    # and then configure vertex attribute(s)
+    glBindVertexArray(VAO)
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO)
+    glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
+
+    if EBO is not None:
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), ctypes.c_void_p(0))
+    glEnableVertexAttribArray(0)
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    
+    # if EBO is not None:
+    #     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+    glBindVertexArray(0)
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if args.polygon_mode == "wire" else GL_FILL)
+
+
+    # render loop
+    while not glfw.window_should_close(window):
+        # input
+        process_input(window)
+
+        # render
+        glClearColor(0.2, 0.3, 0.3, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        # draw
+        glUseProgram(shader_program)
+        glBindVertexArray(VAO)
+        if EBO is None:
+            glDrawArrays(GL_TRIANGLES, 0, 3)
+        if EBO is not None:
+            glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
+        glBindVertexArray(0)
+
+        # check and call events and swap the buffers
+        glfw.swap_buffers(window)
+        glfw.poll_events()
+
+    glDeleteVertexArrays(1, VAO)
+    glDeleteBuffers(1, VBO)
+    if EBO is not None:
+        glDeleteBuffers(1, EBO)
+    glDeleteProgram(shader_program)
+
+    # clear all previously allocated GLFW resources
+    glfw.terminate()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-p", "--primitive", dest="primitive", default="tri")
+    parser.add_argument("-m", "--mode", dest="polygon_mode", default="fill")
+
+    args = parser.parse_args()
+
+    main(args)

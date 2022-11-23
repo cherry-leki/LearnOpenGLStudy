@@ -44,7 +44,7 @@ def process_input(window):
 # set shader program
 def set_shader_program():
     vertex_shader = glCreateShader(GL_VERTEX_SHADER)
-    glShaderSource(vertex_shader, vertex_shader_source)
+    glShaderSource(vertex_shader, vertex_shader_source) # in pyopengl, we don't need to how many strings we passing as src code
     glCompileShader(vertex_shader)
 
     # check for shader compile errors
@@ -146,6 +146,7 @@ def main(args):
     # and then configure vertex attribute(s)
     glBindVertexArray(VAO)
 
+    # copy vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, VBO)
     glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
 
@@ -153,15 +154,26 @@ def main(args):
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
+    # set the vertex attributes pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), ctypes.c_void_p(0))
-    glEnableVertexAttribArray(0)
+    glEnableVertexAttribArray(0)    # specify the index of the vertex attribute to be enabled
 
+    # Binding 0 as a buffer resets the currently bound buffer to a NULL-like state
+    # note that this is allowed, the call to glVertexAttribPointer registered VBO
+    # as the vertex attribute's bound vertex bound object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0)
     
+    # do NOT unbine the EBO while a VAO is active as the bound element buffer is stored in the VAO; keep the EBO bound
+    # VAO store the glBindBuffer calls when the target is GL_ELEMENT_ARRAY_BUFFER, which menas it stores its unbind calls
     # if EBO is not None:
     #     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-    glBindVertexArray(0)
+    # bind vertex array object
+    #  Any subsequent VBO, EBO, glVertexAttribPointer, and glEnalbeVertexAttribArray calls will be stored inside the VAO.
+    #  The role of VAO is just for managing vertex attributes, and we can use VBO only by calling glEnableVertexAttribArray.
+    #  (see how to use VBO without VAO in 02_hello_triangle_noVAO.py)
+    #  So, we don't need to use glBindVertexArray function here and in the while loop to run this simple triangle example.
+    # glBindVertexArray(0)
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if args.polygon_mode == "wire" else GL_FILL)
 
@@ -177,12 +189,14 @@ def main(args):
 
         # draw
         glUseProgram(shader_program)
-        glBindVertexArray(VAO)
+        # glBindVertexArray(VAO)
         if EBO is None:
             glDrawArrays(GL_TRIANGLES, 0, 3)
         if EBO is not None:
-            glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
-        glBindVertexArray(0)
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, ctypes.c_void_p(0)) # last argument is indices that specifies an offset in a buffer
+                                                                                 # or a pointer to the location where the indices are stored
+        print(ctypes.c_void_p(0))
+        # glBindVertexArray(0)
 
         # check and call events and swap the buffers
         glfw.swap_buffers(window)

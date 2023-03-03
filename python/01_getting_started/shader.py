@@ -1,8 +1,7 @@
 import os
 import numpy as np
-import argparse
 
-import glfw
+import glm
 from OpenGL.GL import *
 
 #################################################################
@@ -69,4 +68,25 @@ class Shader:
 
     def set_vec2(self, name, x, y):
         glUniform2f(glGetUniformLocation(self.id, name), x, y)
+
+    def set_vec3(self, name, value):
+        glUniform3fv(glGetUniformLocation(self.id, name), 1, value)
+
+    def set_vec3(self, name, x, y, z):
+        glUniform3f(glGetUniformLocation(self.id, name), x, y, z)
+    
+    def set_vec4(self, name, value):
+        glUniform4fv(glGetUniformLocation(self.id, name), 1, value)
+
+    def set_vec4(self, name, x, y, z, w):
+        glUniform4f(glGetUniformLocation(self.id, name), x, y, z, w)
+
+    def set_mat2(self, name, mat):
+        glUniformMatrix2fv(glGetUniformLocation(self.id, name), 1, GL_FALSE, glm.value_ptr(mat))
+    
+    def set_mat3(self, name, mat):
+        glUniformMatrix3fv(glGetUniformLocation(self.id, name), 1, GL_FALSE, glm.value_ptr(mat))
+
+    def set_mat4(self, name, mat):
+        glUniformMatrix4fv(glGetUniformLocation(self.id, name), 1, GL_FALSE, glm.value_ptr(mat))
     

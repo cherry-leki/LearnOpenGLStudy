@@ -63,4 +63,10 @@ class Shader:
     
     def set_float(self, name, value):
         glUniform1f(glGetUniformLocation(self.id, name), value)
+
+    def set_vec2(self, name, value):
+        glUniform2fv(glGetUniformLocation(self.id, name), 1, value)
+
+    def set_vec2(self, name, x, y):
+        glUniform2f(glGetUniformLocation(self.id, name), x, y)
     

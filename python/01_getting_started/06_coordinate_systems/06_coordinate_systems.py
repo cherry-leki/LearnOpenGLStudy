@@ -207,14 +207,7 @@ def main(args):
         for i in range(len(texture_list)):
             glActiveTexture(GL_TEXTURE0 + i)
             glBindTexture(GL_TEXTURE_2D, texture_list[i][0])
-
-        # create transformations
-        model_mat = glm.mat4(1.0)   # make sure to initialize matrix to identity matrix first
-        if args.task == 1:
-            model_mat = glm.rotate(model_mat, glm.radians(-55.0), glm.vec3(1.0, 0.0, 0.0))
-        else:
-            model_mat = glm.rotate(model_mat, glfw.get_time() * glm.radians(50.0), glm.vec3(0.5, 1.0, 0.0))
-
+        
         view_mat  = glm.mat4(1.0)
         view_mat  = glm.translate(view_mat, glm.vec3(0.0, 0.0, -3.0))
 
@@ -222,26 +215,78 @@ def main(args):
         proj_mat  = glm.perspective(glm.radians(45.0), 800.0 / 600.0, 0.1, 100.0)
 
         # retrieve the matrix uniform locations
-        model_location = glGetUniformLocation(shader_program.id, "model")
         view_location  = glGetUniformLocation(shader_program.id, "view")
-        
-        # pass them to the shaders
-        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm.value_ptr(model_mat))
-        glUniformMatrix4fv(view_location, 1, GL_FALSE, glm.value_ptr(view_mat))
 
         # note: currently we set the projection matrix each frame,
         # but since the projection matrix rarely changes,
         # it's often best practice to set it outside the main loop only once.
         shader_program.set_mat4("projection", proj_mat)
+        
+        # pass them to the shaders
+        glUniformMatrix4fv(view_location, 1, GL_FALSE, glm.value_ptr(view_mat))
+
+        # create transformations
+        model_mat = glm.mat4(1.0)   # make sure to initialize matrix to identity matrix first
+        if args.task == 1:
+            model_mat = glm.rotate(model_mat, glm.radians(-55.0), glm.vec3(1.0, 0.0, 0.0))
+
+            model_location = glGetUniformLocation(shader_program.id, "model")
+            glUniformMatrix4fv(model_location, 1, GL_FALSE, glm.value_ptr(model_mat))
+
+            
+            # render container
+            glBindVertexArray(VAO)
+            if EBO is None:
+                glDrawArrays(GL_TRIANGLES, 0, 36 if args.primitive == "box" else 3)
+            if EBO is not None:
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, ctypes.c_void_p(0)) # last argument is indices that specifies an offset in a buffer
+                                                                                    # or a pointer to the location where the indices are stored
+        elif args.task == 2:
+            model_mat = glm.rotate(model_mat, glfw.get_time() * glm.radians(50.0), glm.vec3(0.5, 1.0, 0.0))
+
+            model_location = glGetUniformLocation(shader_program.id, "model")
+            glUniformMatrix4fv(model_location, 1, GL_FALSE, glm.value_ptr(model_mat))
+
+            
+            # render container
+            glBindVertexArray(VAO)
+            if EBO is None:
+                glDrawArrays(GL_TRIANGLES, 0, 36 if args.primitive == "box" else 3)
+            if EBO is not None:
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, ctypes.c_void_p(0)) # last argument is indices that specifies an offset in a buffer
+                                                                                    # or a pointer to the location where the indices are stored
+        elif args.task == 3:
+            cube_position = [ 
+                              glm.vec3( 0.0,  0.0,   0.0),
+                              glm.vec3( 2.0,  5.0, -15.0),
+                              glm.vec3(-1.5, -2.2,  -2.5),
+                              glm.vec3(-3.8, -2.0, -12.3),
+                              glm.vec3( 2.4, -0.4,  -3.5),
+                              glm.vec3(-1.7,  3.0,  -7.5),
+                              glm.vec3( 1.3, -2.0,  -2.5),
+                              glm.vec3( 1.5,  2.0,  -2.5),
+                              glm.vec3( 1.5,  0.2,  -1.5),
+                              glm.vec3(-1.3,  1.0,  -1.5),
+                            ]
+
+            # render container
+            glBindVertexArray(VAO)
+
+            for i in range(10):
+                model = glm.mat4(1)
+                model = glm.translate(model, cube_position[i])
+                angle = 20.0 * i
+                model = glm.rotate(model, glm.radians(angle), glm.vec3(1.0, 0.3, 0.5))
+                shader_program.set_mat4("model", model)
+
+                
+                if EBO is None:
+                    glDrawArrays(GL_TRIANGLES, 0, 36 if args.primitive == "box" else 3)
+                if EBO is not None:
+                    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, ctypes.c_void_p(0)) # last argument is indices that specifies an offset in a buffer
+                                                                                        # or a pointer to the location where the indices are stored
 
         
-        # render container
-        glBindVertexArray(VAO)
-        if EBO is None:
-            glDrawArrays(GL_TRIANGLES, 0, 36 if args.primitive == "box" else 3)
-        if EBO is not None:
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, ctypes.c_void_p(0)) # last argument is indices that specifies an offset in a buffer
-                                                                                 # or a pointer to the location where the indices are stored
 
 
         # check and call events and swap the buffers

@@ -149,9 +149,9 @@ def main(args):
         # create transformations
         ratio     = args.window_size[0] / args.window_size[1]
         proj_mat  = (glm.perspective(glm.radians(45.0), ratio, 0.1, 100.0) if viewpoint == 0 
-                    else glm.ortho(-2.0, 2.0, -2.0 / ratio, 2.0 / ratio, -1000.0, 1000.0))
+                    else glm.ortho(-4.0, 4.0, -4.0 / ratio, 4.0 / ratio, 0.1, 1000.0))
 
-        view_mat  = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -3.0))
+        view_mat  = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -5.0))
         view_mat  = glm.rotate(view_mat, glm.radians(cam_roll),  glm.vec3(1.0, 0.0, 0.0))
         view_mat  = glm.rotate(view_mat, glm.radians(cam_yaw),   glm.vec3(0.0, 1.0, 0.0))
         view_mat  = glm.rotate(view_mat, glm.radians(cam_pitch), glm.vec3(0.0, 0.0, 1.0))

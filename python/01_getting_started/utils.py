@@ -1,5 +1,7 @@
 import glfw
 import glm
+import numpy as np
+
 from OpenGL.GL import *
 from math import *
 
@@ -58,11 +60,7 @@ class Camera:
 
         self.yaw   = self.yaw   + x_offset
         self.pitch = self.pitch + y_offset
-
-        if (self.pitch > 89.0):
-            self.pitch = 89.0
-        if (self.pitch < -89.0):
-            self.pitch = -89.0
+        self.pitch = np.clip(self.pitch, -89.0, 89.0)
 
         front   = glm.vec3()
         front.x = cos(glm.radians(self.yaw)) * cos(glm.radians(self.pitch))
@@ -73,10 +71,8 @@ class Camera:
 
     def get_fov(self, x_offset, y_offset):
         fov = fov - y_offset
-        if fov < 1.0:
-            fov = 1.0
-        if fov > 45.:
-            fov = 45.0
+
+        fov = np.clip(fov, 1.0, 45.0)
         
         return fov
 

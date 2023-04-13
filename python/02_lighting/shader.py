@@ -1,4 +1,5 @@
 import os
+from typing import overload
 import numpy as np
 
 import glm
@@ -63,23 +64,29 @@ class Shader:
     def set_float(self, name, value):
         glUniform1f(glGetUniformLocation(self.id, name), value)
 
-    def set_vec2(self, name, value):
-        glUniform2fv(glGetUniformLocation(self.id, name), 1, value)
+    def set_vec2(self, name, *args):
+        if len(args) == 1:
+            glUniform2fv(glGetUniformLocation(self.id, name), 1, glm.value_ptr(args[0]))
+        elif len(args) == 3:
+            glUniform2f(glGetUniformLocation(self.id, name), args[0], args[1])
+        else:
+            raise TypeError("set_vec2()::wrong positional arguments: glm.vec2() or x, y values")
 
-    def set_vec2(self, name, x, y):
-        glUniform2f(glGetUniformLocation(self.id, name), x, y)
-
-    def set_vec3(self, name, value):
-        glUniform3fv(glGetUniformLocation(self.id, name), 1, value)
-
-    def set_vec3(self, name, x, y, z):
-        glUniform3f(glGetUniformLocation(self.id, name), x, y, z)
+    def set_vec3(self, name, *args):
+        if len(args) == 1:
+            glUniform3fv(glGetUniformLocation(self.id, name), 1, glm.value_ptr(args[0]))
+        elif len(args) == 3:
+            glUniform3f(glGetUniformLocation(self.id, name), args[0], args[1], args[2])
+        else:
+            raise TypeError("set_vec3()::wrong positional arguments: glm.vec3() or x, y, z values")
     
-    def set_vec4(self, name, value):
-        glUniform4fv(glGetUniformLocation(self.id, name), 1, value)
-
-    def set_vec4(self, name, x, y, z, w):
-        glUniform4f(glGetUniformLocation(self.id, name), x, y, z, w)
+    def set_vec4(self, name, *args):
+        if len(args) == 1:
+            glUniform4fv(glGetUniformLocation(self.id, name), 1, glm.value_ptr(args[0]))
+        elif len(args) == 4:
+            glUniform4f(glGetUniformLocation(self.id, name), args[0], args[1], args[2], args[3])
+        else:
+            raise TypeError("set_vec4()::wrong positional arguments: glm.vec4() or x, y, z, w values")
 
     def set_mat2(self, name, mat):
         glUniformMatrix2fv(glGetUniformLocation(self.id, name), 1, GL_FALSE, glm.value_ptr(mat))

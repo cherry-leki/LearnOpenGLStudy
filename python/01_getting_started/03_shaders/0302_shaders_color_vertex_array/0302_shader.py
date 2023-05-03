@@ -9,8 +9,8 @@ from OpenGL.GL import *
 
 
 ### shaders
-vs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "0302_vertex_shader.vs")
-fs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "0302_fragment_shader.fs")
+vs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "0302_vtx_shader.vs")
+fs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "0302_frag_shader.fs")
 
 vertex_shader_source   = open(vs_path, 'r').read()
 fragment_shader_source = open(fs_path, 'r').read()

@@ -1,6 +1,6 @@
 import glfw
 import glm
-
+from enum import Enum
 
 # Default camera values
 YAW         = -90.0
@@ -8,6 +8,10 @@ PITCH       = 0.0
 SPEED       = 2.5
 SENSITIVITY = 0.1
 ZOOM        = 45.0
+
+class MOVEMODE(Enum):
+    GUI      = 0
+    KEYBOARD = 1
 
 class Camera:
     def __init__(self, window_width, window_height,
@@ -34,6 +38,8 @@ class Camera:
         self.delta_time  = 0.0
         self.last_frame  = 0.0
 
+        self.move_mode = MOVEMODE.GUI
+
         self._update_camera_vectors()
 
 
@@ -54,6 +60,8 @@ class Camera:
         return glm.lookAt(self.position, self.position + self.front, self.up)
 
     def translate(self, window):
+        if (self.move_mode == MOVEMODE.GUI.value): return
+
         velocity = self.move_speed * self.delta_time
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
             self.position += self.front * velocity
@@ -65,6 +73,8 @@ class Camera:
             self.position += self.right * velocity
     
     def rotate(self, x_offset, y_offset, contrain_pitch=True):
+        if (self.move_mode == MOVEMODE.GUI.value): return
+
         x_offset *= self.move_sense
         y_offset *= self.move_sense
 
@@ -77,6 +87,8 @@ class Camera:
         self._update_camera_vectors()
 
     def zoom(self, window, x_offset, y_offset):
+        if (self.move_mode == MOVEMODE.GUI.value): return
+
         self.fov -= y_offset
         self.fov = glm.clamp(self.fov, 1.0, 45.0)
 
@@ -100,28 +112,6 @@ class Camera:
             self.rotate(x_offset, y_offset)
         else:
             self.first_mouse = True
-        # x_pos = x_pos_in
-        # y_pos = y_pos_in
-
-        # if (self.first_mouse):
-        #     self.last_x = x_pos
-        #     self.last_y = y_pos
-        #     self.first_mouse = False
-        
-        # x_offset = x_pos - self.last_x
-        # y_offset = self.last_y - y_pos
-
-        # self.last_x = x_pos
-        # self.last_y = y_pos
-
-        
-        # self.rotate(x_offset, y_offset)
-    
-    def set_position(self, position):
-        self.position.x = -position[2]
-        self.position.y = position[1]
-        self.position.z = position[0]
-        
 
     def set_rotation(self, rotation):
         self.yaw   = rotation[1]

@@ -25,9 +25,11 @@ def main(args):
     # Variables
     # camera
     cam = Camera(args.window_size[0], args.window_size[1], glm.vec3(0.0, 0.0, 3.0))
+    glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
     glfw.set_cursor_pos_callback(window, cam.mouse_callback)
     glfw.set_scroll_callback(window, cam.zoom)
-    cam_mode = 0
+    cam_mode = 1
+    cam.move_mode = cam_mode
     cam_pos = [0, 0, 0]
     cam_rot = [0, 0, 0]
 
@@ -84,8 +86,10 @@ def main(args):
             " mode", cam_mode, ["GUI", "Keyboard"]
         )
         if changed_cam_mode:
+            cam.move_mode = cam_mode
+
             if cam_mode == 0:
-                cam_pos = cam.position
+                cam_pos    = cam.position
                 cam_rot[1] = cam.yaw
                 cam_rot[2] = cam.pitch
 
@@ -107,12 +111,11 @@ def main(args):
             if reset_rot:
                 cam_rot = [0, 0, 0]            
             imgui.push_item_width(120)
-            _, cam_rot[0] = imgui.slider_float('Roll',  cam_rot[0], -360.0, 360.0, '%.2f', 1.0)
-            _, cam_rot[1] = imgui.slider_float('Yaw',   cam_rot[1], -360.0, 360.0, '%.2f', 1.0)
-            _, cam_rot[2] = imgui.slider_float('Pitch', cam_rot[2], -360.0, 360.0, '%.2f', 1.0)
+            _, cam_rot[0] = imgui.slider_float('Roll',  cam_rot[0], -180.0, 180.0, '%.2f', 1.0)
+            _, cam_rot[1] = imgui.slider_float('Yaw',   cam_rot[1], -180.0, 180.0, '%.2f', 1.0)
+            _, cam_rot[2] = imgui.slider_float('Pitch', cam_rot[2], -180.0, 180.0, '%.2f', 1.0)
             imgui.pop_item_width()
 
-            cam.set_position(cam_pos)
             cam.set_rotation(cam_rot)
 
         elif cam_mode == 1:
@@ -170,6 +173,8 @@ def main(args):
 
         glViewport(0, 0, viewport_size[0], viewport_size[1])
         glScissor(0, 0, viewport_size[0], viewport_size[1])
+
+        
         # opengl render
         gl.glEnable(GL_DEPTH_TEST)
         

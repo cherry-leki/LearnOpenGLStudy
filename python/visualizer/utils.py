@@ -1,5 +1,6 @@
 import os, sys
 import glob
+import glm
 import glfw
 import imgui
 
@@ -75,6 +76,12 @@ def get_img_list(file_path):
 
     return img_path_list, img_name_list
 
+def get_texture_list(img_file_path):
+    img_path_list, img_name_list = get_img_list(img_file_path)
+    texture_list = [load_texture(img) for img in img_path_list]
+
+    return texture_list, img_name_list
+
 
 def load_texture(file_path):
     texture = glGenTextures(1)
@@ -116,3 +123,25 @@ class imgui_ext:
                                   pos[1] + 15,
                                   int.from_bytes(bytearray.fromhex(color), byteorder='little'))
         imgui.text(text)
+
+    @staticmethod
+    def convert_sin_to_rgb(color):
+        in_min = glm.vec3(-1)
+        in_max = glm.vec3(1)
+        out_min = glm.vec3(0)
+        out_max = glm.vec3(255)
+
+        new_color = (color - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+        return new_color
+
+    @staticmethod
+    def convert_color(color, in_min, in_max, out_min, out_max):
+        in_min = glm.vec3(in_min)
+        in_max = glm.vec3(in_max)
+        out_min = glm.vec3(out_min)
+        out_max = glm.vec3(out_max)
+
+        new_color = (color - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+        return new_color

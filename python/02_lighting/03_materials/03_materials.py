@@ -309,6 +309,8 @@ def main(args):
         model_mat = glm.scale(model_mat, glm.vec3(0.2))
         light_shader.set_mat4("model", model_mat)
 
+        light_shader.set_vec3("color", glm.vec3(1.0))
+
         glBindVertexArray(light_VAO)
         glDrawArrays(GL_TRIANGLES, 0, 36)
 

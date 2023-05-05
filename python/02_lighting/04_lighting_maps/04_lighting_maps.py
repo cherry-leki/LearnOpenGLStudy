@@ -241,11 +241,6 @@ def main(args):
         # render container
         glBindVertexArray(obj_VAO)
 
-        # create transformations
-        model_mat_list = []
-        model_mat = glm.mat4(1.0)
-        model_mat_list.append(model_mat)
-
         # object shader
         obj_shader.use()
         obj_shader.set_vec3("viewPos", camera.position)       # cam properties
